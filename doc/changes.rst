@@ -4,6 +4,9 @@ Change log
 Stable versions
 ~~~~~~~~~~~~~~~
 
+Version 2.5.1 (Never published)
+-------------------------------
+
 Version 2.5.0 (November 06, 2024)
 ---------------------------------
 
