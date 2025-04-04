@@ -1755,6 +1755,10 @@ class Repository(CompletableGithubObject):
         maintainer_can_modify: Opt[bool] = NotSet,
         draft: Opt[bool] = NotSet,
         issue: Opt[github.Issue.Issue] = NotSet,
+        assignee: NamedUser | Opt[str] = NotSet,
+        milestone: Opt[Milestone] = NotSet,
+        labels: list[Label] | Opt[list[str]] = NotSet,
+        assignees: Opt[list[str]] | list[NamedUser] = NotSet,
     ) -> github.PullRequest.PullRequest:
         """
         :calls: `POST /repos/{owner}/{repo}/pulls <https://docs.github.com/en/free-pro-team@latest/rest/pulls/pulls?apiVersion=2022-11-28#create-a-pull-request>`_
@@ -1766,6 +1770,10 @@ class Repository(CompletableGithubObject):
         assert is_optional(maintainer_can_modify, bool), maintainer_can_modify
         assert is_optional(draft, bool), draft
         assert is_optional(issue, github.Issue.Issue), issue
+        assert is_optional(assignee, (str, github.NamedUser.NamedUser)), assignee
+        assert is_optional_list(assignees, (github.NamedUser.NamedUser, str)), assignees
+        assert is_optional(milestone, github.Milestone.Milestone), milestone
+        assert is_optional_list(labels, (github.Label.Label, str)), labels
 
         post_parameters = NotSet.remove_unset_items(
             {
@@ -1777,6 +1785,24 @@ class Repository(CompletableGithubObject):
                 "draft": draft,
             }
         )
+
+        if is_defined(assignee):
+            if isinstance(assignee, github.NamedUser.NamedUser):
+                post_parameters["assignee"] = assignee._identity
+            else:
+                post_parameters["assignee"] = assignee
+        if is_defined(assignees):
+            post_parameters["assignees"] = [
+                element._identity if isinstance(element, github.NamedUser.NamedUser) else element
+                for element in assignees  # type: ignore
+            ]
+        if is_defined(milestone):
+            post_parameters["milestone"] = milestone._identity
+        if is_defined(labels):
+            post_parameters["labels"] = [
+                element.name if isinstance(element, github.Label.Label) else element
+                for element in labels  # type: ignore
+            ]
 
         if is_defined(issue):
             post_parameters["issue"] = issue._identity
